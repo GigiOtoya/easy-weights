@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Context, Event
+from bpy.types import Context, Object
 
 
 class TransferWeightOperator(bpy.types.Operator):
@@ -15,8 +15,30 @@ class TransferWeightOperator(bpy.types.Operator):
         for obj in targets:
             bpy.ops.object.data_transfer(data_type="VGROUP_WEIGHTS", layers_select_src="NAME", layers_select_dst="ALL")
 
-        self.report({"INFO"}, str(selected_objects))
+        message: str = "List[objects]: " + str(selected_objects)
+
+        self.report({"INFO"}, message=message)
         return {"FINISHED"}
+    
+class CleanUpOperator(bpy.types.Operator):
+    bl_idname = "object.weight_cleanup"
+    bl_label = "Weight Cleanup"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return context.selected_objects
+
+    def execute(self, context: Context):
+        selected_objects: list[Object] = context.selected_objects
+        
+        for obj in selected_objects:
+            if obj.type == 'INFO':
+                obj.vertex_groups.clear()
+        
+        message: str = "Deleted all vertex groups from selected objects."
+        self.report({'INFO'}, message=message)
+
 
 class EasyWeightPanel(bpy.types.Panel):
     bl_label = "Easy Weights"
@@ -35,18 +57,22 @@ class EasyWeightPanel(bpy.types.Panel):
 
 
     def draw(self, context: Context):
-
         layout = self.layout
+        
+        section = layout.box()
+        
+        row = section.row()
+        row.label(text="Settings", icon='MODIFIER')
 
-        row = layout.row()
-        row.label(text="Source Object: ")
+        row = section.row()
+        row.label(text="Source Mesh: ")
 
         selected_objects = context.selected_objects
 
         if selected_objects:
             source = context.active_object
             if source in selected_objects:
-                row.label(text=source.name)
+                row.prop(source, "name", icon='OBJECT_DATA', placeholder='Object')
         else:
             row.label(text="No object selected")
         
@@ -57,8 +83,10 @@ class EasyWeightPanel(bpy.types.Panel):
         row.operator(TransferWeightOperator.bl_idname, text="Transfer Weights", icon="MOD_DATA_TRANSFER")
 
 
+
 classes = [
     TransferWeightOperator,
+    CleanUpOperator,
     EasyWeightPanel
 ]
 
