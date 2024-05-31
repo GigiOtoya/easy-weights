@@ -1,6 +1,31 @@
 import bpy
-from bpy.types import Context, Object
+from typing import List
+from bpy.types import Context, Object, Collection
 
+class EasyWeightsProperty(bpy.types.PropertyGroup):
+    _TargetType = Collection | List[Object]
+
+    # Mesh only selection function for poll property
+    def poll_mesh(self, object: Object):
+        return object.type == 'MESH'
+    
+    def poll_collection(self, objects: _TargetType):
+        return 
+    
+    # body: bpy.types.Object
+    body: bpy.props.PointerProperty(
+        name="Source Mesh",
+        description="Select the source mesh from which weights will be transferred from",
+        type=Object,
+        poll=poll_mesh
+    )
+
+    targets: bpy.props.PointerProperty(
+        name="Collection",
+        description="Objects that will have weights transferred to",
+        type=_TargetType,
+        poll=poll_collection
+    )
 
 class TransferWeightOperator(bpy.types.Operator):
     bl_idname = "object.transfer_weights"
@@ -30,7 +55,7 @@ class CleanUpOperator(bpy.types.Operator):
         return context.selected_objects
 
     def execute(self, context: Context):
-        selected_objects: list[Object] = context.selected_objects
+        selected_objects: List[Object] = context.selected_objects
         
         for obj in selected_objects:
             if obj.type == 'INFO':
@@ -39,13 +64,14 @@ class CleanUpOperator(bpy.types.Operator):
         message: str = "Deleted all vertex groups from selected objects."
         self.report({'INFO'}, message=message)
 
-
-class EasyWeightPanel(bpy.types.Panel):
-    bl_label = "Easy Weights"
+class MainPanel:
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Easy Weights"
-    
+
+class EasyWeightPanel(MainPanel, bpy.types.Panel):
+    bl_label = "Easy Weights"
+
     @classmethod
     def poll(cls, context: Context) -> bool:
         return context.active_object is not None
@@ -58,23 +84,26 @@ class EasyWeightPanel(bpy.types.Panel):
 
     def draw(self, context: Context):
         layout = self.layout
-        
+        ew_properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+
         section = layout.box()
         
         row = section.row()
         row.label(text="Settings", icon='MODIFIER')
 
         row = section.row()
-        row.label(text="Source Mesh: ")
+        # row.label(text="Source Mesh: ")
+        row.prop(ew_properties, 'body')
+        row.box().propa()
 
         selected_objects = context.selected_objects
 
-        if selected_objects:
-            source = context.active_object
-            if source in selected_objects:
-                row.prop(source, "name", icon='OBJECT_DATA', placeholder='Object')
-        else:
-            row.label(text="No object selected")
+        # if selected_objects:
+        #     source = context.active_object
+        #     if source in selected_objects:
+        #         row.prop(source, "name", icon='OBJECT_DATA', placeholder='Object')
+        # else:
+        #     row.label(text="No object selected")
         
         row = layout.row()
         row.label(text="Transfer Weights", icon="GROUP_VERTEX")
@@ -85,6 +114,7 @@ class EasyWeightPanel(bpy.types.Panel):
 
 
 classes = [
+    EasyWeightsProperty,
     TransferWeightOperator,
     CleanUpOperator,
     EasyWeightPanel
@@ -102,6 +132,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     
+    bpy.types.Scene.EasyWeightsProperty = bpy.props.PointerProperty(type=EasyWeightsProperty)
     bpy.app.handlers.depsgraph_update_post.append(updatePanel)
 
 def unregister():
