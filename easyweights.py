@@ -54,7 +54,7 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
 
     CLEAN: BoolProperty(
         name="Clean",
-        description="Remove vertex groups with weight_value = 0 from target mesh",
+        description="Exclude vertex groups with weight_value = 0 from target mesh",
         default=False
     )
 
@@ -79,6 +79,8 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
 class TransferWeightOperator(bpy.types.Operator):
     bl_idname = "object.transfer_weights"
     bl_label = "Weight Transfer"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Transfer weights from source to target"
 
     def execute(self, context: Context):
         properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
@@ -103,6 +105,7 @@ class CleanUpOperator(bpy.types.Operator):
     bl_idname = "object.weight_cleanup"
     bl_label = "Weight Cleanup"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = "Remove vertex groups with weight_value = 0 from target"
     
     @classmethod
     def poll(cls, context: Context) -> bool:
@@ -157,18 +160,38 @@ class EasyWeightPanel(MainPanel, bpy.types.Panel):
         else:
             row.prop(properties, 'TARGETS')
 
+        
+
+        
+
         row = section.row()
         row.prop(properties, 'CLEAN')
 
         row = section.row()
         row.prop(properties, 'SMOOTH')
         
-        row = layout.row()
-        row.label(text="Transfer Weights", icon="GROUP_VERTEX")
+        # row = layout.row()
+        # row.label(text="Transfer Weights", icon="GROUP_VERTEX")
 
-        row = layout.row()
-        row.operator(TransferWeightOperator.bl_idname, text="Transfer Weights", icon="MOD_DATA_TRANSFER")
+        # row = layout.row()
 
+        section = layout.box()
+        row = section.row()
+        row.label(text="Actions", icon="OPTIONS")
+
+        row = section.row()
+        row.operator(
+            TransferWeightOperator.bl_idname, 
+            text="Transfer Weights", 
+            icon="MOD_DATA_TRANSFER"
+        )
+
+        row =section.row()
+        row.operator(
+            CleanUpOperator.bl_idname,
+            text="Clean Vertex Groups",
+            icon="GROUP_VERTEX"
+        )
 
 
 classes = [
