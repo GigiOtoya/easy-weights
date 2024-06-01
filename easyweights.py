@@ -1,6 +1,7 @@
 import bpy
 from typing import List
 from bpy.types import Context, Object, Collection
+from bpy.props import PointerProperty, BoolProperty
 
 class EasyWeightsProperty(bpy.types.PropertyGroup):
     # Mesh only selection function for poll property
@@ -10,19 +11,37 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
     def poll_collection(self, collection:Collection):
         return any(obj.type == 'MESH' for obj in collection.objects)
     
-    # body: bpy.types.Object
-    BODY: bpy.props.PointerProperty(
+    SOURCE: PointerProperty(
         name="Source",
         description="Select the source mesh from which weights will be transferred from",
         type=Object,
         poll=poll_mesh
     )
 
-    TARGETS: bpy.props.PointerProperty(
+    TARGET: PointerProperty(
+        name="Target",
+        description="Mesh that will have weights transferred to",
+        type=Object,
+        poll=poll_mesh
+    )
+
+    TARGETS: PointerProperty(
         name="Targets",
         description="Objects that will have weights transferred to",
         type=Collection,
         poll=poll_collection
+    )
+    
+    SELECT_ONE: BoolProperty(
+        name="Mesh",
+        description="Target a single mesh",
+        default=True 
+    )
+
+    SELECT_MULTIPLE: BoolProperty(
+        name="Collection",
+        description="Target all mesh in a collection",
+        default=False
     )
 
 class TransferWeightOperator(bpy.types.Operator):
@@ -34,7 +53,7 @@ class TransferWeightOperator(bpy.types.Operator):
         
         selected_objects = context.selected_objects
         
-        source: Object = ew_properties.BODY
+        source: Object = ew_properties.SOURCE
         targets: Collection = ew_properties.TARGETS
 
         # source = selected_objects[-1]
@@ -96,17 +115,21 @@ class EasyWeightPanel(MainPanel, bpy.types.Panel):
 
     def draw(self, context: Context):
         layout = self.layout
-        ew_properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+        properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
 
         section = layout.box()
         row = section.row()
         row.label(text="Settings", icon='MODIFIER')
 
         row = section.row()
-        row.prop(ew_properties, 'BODY')
+        row.prop(properties, 'SOURCE')
 
         row = section.row()
-        row.prop(ew_properties, 'TARGETS')
+        row.prop(properties, 'TARGETS')
+
+        row = section.row()
+        row.prop(properties, 'SELECT_ONE')
+        row.prop(properties, 'SELECT_MULTIPLE')
 
         
 
