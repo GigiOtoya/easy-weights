@@ -1,10 +1,9 @@
 import bpy
 from typing import List
 from bpy.types import Context, Object, Collection
-from bpy.props import PointerProperty, BoolProperty
+from bpy.props import PointerProperty, BoolProperty, EnumProperty
 
 class EasyWeightsProperty(bpy.types.PropertyGroup):
-    # Mesh only selection function for poll property
     def poll_mesh(self, object: Object):
         return object.type == 'MESH'
     
@@ -31,6 +30,39 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
         type=Collection,
         poll=poll_collection
     )
+
+    SELECTION_MODE: EnumProperty(
+        name = "Mode",
+        description = "Mode",
+        items = (
+            (
+                "MESH_SINGLE",
+                "Single Mesh",
+                "Transfer weights to a single mesh",
+                "MESH_DATA",
+                0
+            ),
+            (
+                "COLLECTION",
+                "Collection",
+                "Transfer weights to all mesh in a collection",
+                "COLLECTION_COLOR_02",
+                1
+            ),
+        )
+    )
+
+    CLEAN: BoolProperty(
+        name="Clean",
+        description="Remove vertex groups with weight_value = 0 from target mesh",
+        default=False
+    )
+
+    SMOOTH: BoolProperty(
+        name="Smooth",
+        description="Smooth weights for vertex groups",
+        default=False
+    )
     
     SELECT_ONE: BoolProperty(
         name="Mesh",
@@ -49,20 +81,11 @@ class TransferWeightOperator(bpy.types.Operator):
     bl_label = "Weight Transfer"
 
     def execute(self, context: Context):
-        ew_properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+        properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
         
-        selected_objects = context.selected_objects
-        
-        source: Object = ew_properties.SOURCE
-        targets: Collection = ew_properties.TARGETS
+        source: Object = properties.SOURCE
+        targets: Collection = properties.TARGETS
 
-        # source = selected_objects[-1]
-        # targets = selected_objects[:len(selected_objects)-1]
-
-        # for obj in targets:
-        #     bpy.ops.object.data_transfer(data_type="VGROUP_WEIGHTS", layers_select_src="NAME", layers_select_dst="ALL")
-
-        # message: str = "List[objects]: " + str(selected_objects)
 
         for obj in targets.objects:
             if obj.type == 'MESH' and obj != source:
@@ -124,23 +147,21 @@ class EasyWeightPanel(MainPanel, bpy.types.Panel):
         row = section.row()
         row.prop(properties, 'SOURCE')
 
-        row = section.row()
-        row.prop(properties, 'TARGETS')
 
         row = section.row()
-        row.prop(properties, 'SELECT_ONE')
-        row.prop(properties, 'SELECT_MULTIPLE')
-
+        row.prop(properties, 'SELECTION_MODE', expand=True)
         
+        row = section.row()
+        if properties.SELECTION_MODE == 'MESH_SINGLE':
+            row.prop(properties, 'TARGET')
+        else:
+            row.prop(properties, 'TARGETS')
 
-        selected_objects = context.selected_objects
+        row = section.row()
+        row.prop(properties, 'CLEAN')
 
-        # if selected_objects:
-        #     source = context.active_object
-        #     if source in selected_objects:
-        #         row.prop(source, "name", icon='OBJECT_DATA', placeholder='Object')
-        # else:
-        #     row.label(text="No object selected")
+        row = section.row()
+        row.prop(properties, 'SMOOTH')
         
         row = layout.row()
         row.label(text="Transfer Weights", icon="GROUP_VERTEX")
