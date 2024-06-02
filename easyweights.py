@@ -86,8 +86,34 @@ class TransferWeightOperator(bpy.types.Operator):
         properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
         
         source: Object = properties.SOURCE
-        targets: Collection = properties.TARGETS
+        collection: Collection = properties.TARGETS
 
+        targets: List[Object] = []
+        for obj in collection.objects:
+            self.report({"INFO"}, "Getting valid mesh objects from collection")
+            
+            if obj.type == 'MESH' and obj != source:
+                targets.append(obj)
+            
+        for target in targets:
+            message: str = f"Transferring weights from {source.name} to {obj.name}"
+            self.report({"INFO"}, message=message)
+            
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            source.select_set(True)
+            target.select_set(True)
+            context.view_layer.objects.active = target
+
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            bpy.ops.object.data_transfer(
+                use_reverse_transfer=True,
+                data_type='VGROUP_WEIGHTS',
+                layers_select_src='NAME',
+                layers_select_dst='ALL'
+            )
+                
 
         for obj in targets.objects:
             if obj.type == 'MESH' and obj != source:
@@ -119,7 +145,7 @@ class CleanUpOperator(bpy.types.Operator):
                 obj.vertex_groups.clear()
         
         message: str = "Deleted all vertex groups from selected objects."
-        self.report({'INFO'}, message=message)
+        self.rdeport({'INFO'}, message=message)
 
 class MainPanel:
     bl_space_type = "VIEW_3D"
@@ -160,21 +186,12 @@ class EasyWeightPanel(MainPanel, bpy.types.Panel):
         else:
             row.prop(properties, 'TARGETS')
 
-        
-
-        
-
         row = section.row()
         row.prop(properties, 'CLEAN')
 
         row = section.row()
         row.prop(properties, 'SMOOTH')
         
-        # row = layout.row()
-        # row.label(text="Transfer Weights", icon="GROUP_VERTEX")
-
-        # row = layout.row()
-
         section = layout.box()
         row = section.row()
         row.label(text="Actions", icon="OPTIONS")
@@ -202,7 +219,7 @@ classes = [
 ]
 
 def updatePanel(self, context):
-    # This function forces the UI to update
+    # Force UI to update
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
             for region in area.regions:
