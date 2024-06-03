@@ -85,6 +85,15 @@ class TransferWeightOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Transfer weights from source to target"
 
+    @classmethod
+    def poll(cls, context: Context)-> bool:
+        properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+        
+        if properties.SELECTION_MODE == 'MESH_SINGLE':
+            return properties.TARGET != None and properties.SOURCE != None
+        else:
+            return properties.TARGETS != None and properties.SOURCE != None
+
     def transferWeights(source: Object, target: Object):
         for v_group in source.vertex_groups:
             target.vertex_groups.new(name=v_group.name)
