@@ -5,7 +5,7 @@ from bpy.props import PointerProperty, BoolProperty, EnumProperty
 
 class EasyWeightsProperty(bpy.types.PropertyGroup):
     def poll_mesh(self, object: Object):
-        return object.type == 'MESH'
+        return object.type == 'MESH' and object != self.SOURCE
     
     def poll_collection(self, collection:Collection):
         return any(obj.type == 'MESH' for obj in collection.objects)
@@ -82,15 +82,25 @@ class TransferWeightOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Transfer weights from source to target"
 
+    def transferWeights(source: Object, target: Object):
+        for v_group in source.vertex_groups:
+            target.vertex_groups.new(name=v_group.name)
+        
+
     def execute(self, context: Context):
         properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
         
         source: Object = properties.SOURCE
-        collection: Collection = properties.TARGETS
+        objects: List[Object] = []
+        
+        if properties.SELECTION_MODE == 'MESH_SINGLE':
+            objects.append(properties.TARGET)
+        else:
+            objects = properties.TARGETS
 
         targets: List[Object] = []
-        for obj in collection.objects:
-            self.report({"INFO"}, "Getting valid mesh objects from collection")
+        for obj in objects.objects:
+            self.report({"INFO"}, "Getting valid mesh objects")
             
             if obj.type == 'MESH' and obj != source:
                 targets.append(obj)
@@ -113,17 +123,18 @@ class TransferWeightOperator(bpy.types.Operator):
                 layers_select_src='NAME',
                 layers_select_dst='ALL'
             )
+        
+        bpy.ops.object.select_all(action='DESELECT')
+        context.view_layer.objects.active = None 
+        # for obj in targets.objects:
+        #     if obj.type == 'MESH' and obj != source:
+        #         message: str = f"Transferring weights from {source.name} to {obj.name}"
+        #     elif obj == source:
+        #         message: str = f"Skipping source mesh: {source.name}"
+        #     else:
+        #         message: str = f"Skipping non-mesh object: {obj.name}"
                 
-
-        for obj in targets.objects:
-            if obj.type == 'MESH' and obj != source:
-                message: str = f"Transferring weights from {source.name} to {obj.name}"
-            elif obj == source:
-                message: str = f"Skipping source mesh: {source.name}"
-            else:
-                message: str = f"Skipping non-mesh object: {obj.name}"
-                
-            self.report({"INFO"}, message=message)
+        #     self.report({"INFO"}, message=message)
             
         return {"FINISHED"}
     
