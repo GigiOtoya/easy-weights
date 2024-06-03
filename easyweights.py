@@ -4,9 +4,12 @@ from bpy.types import Context, Object, Collection
 from bpy.props import PointerProperty, BoolProperty, EnumProperty
 
 class EasyWeightsProperty(bpy.types.PropertyGroup):
-    def poll_mesh(self, object: Object):
-        return object.type == 'MESH' and object != self.SOURCE
+    def poll_source(self, object: Object):
+        return object.type == 'MESH' and object != self.TARGET
     
+    def poll_target(self, object: Object):
+        return object.type == 'MESH' and object != self.SOURCE
+
     def poll_collection(self, collection:Collection):
         return any(obj.type == 'MESH' for obj in collection.objects)
     
@@ -14,14 +17,14 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
         name="Source",
         description="Select the source mesh from which weights will be transferred from",
         type=Object,
-        poll=poll_mesh
+        poll=poll_source
     )
 
     TARGET: PointerProperty(
         name="Target",
         description="Mesh that will have weights transferred to",
         type=Object,
-        poll=poll_mesh
+        poll=poll_target
     )
 
     TARGETS: PointerProperty(
@@ -146,9 +149,24 @@ class CleanUpOperator(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return context.selected_objects
+        properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+
+        if properties.SELECTION_MODE == 'MESH_SINGLE':
+            return properties.TARGET != None
+        else:
+            return properties.TARGETS != None
 
     def execute(self, context: Context):
+        properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
+        
+        objects: List[Object] = []
+        if properties.SELECTION_MODE == 'MESH_SINGLE':
+            objects.append(properties.TARGET)
+        else:
+            objects = properties.TARGETS
+        
+        
+
         selected_objects: List[Object] = context.selected_objects
         
         for obj in selected_objects:
