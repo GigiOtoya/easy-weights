@@ -13,6 +13,10 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
     def poll_collection(self, collection:Collection):
         return any(obj.type == 'MESH' for obj in collection.objects)
     
+    def update(self, context):
+        self.TARGET = None
+        self.TARGETS = None
+    
     SOURCE: PointerProperty(
         name="Source",
         description="Select the source mesh from which weights will be transferred from",
@@ -52,7 +56,8 @@ class EasyWeightsProperty(bpy.types.PropertyGroup):
                 "COLLECTION_COLOR_02",
                 1
             ),
-        )
+        ),
+        update=update
     )
 
     CLEAN: BoolProperty(
@@ -103,22 +108,19 @@ class TransferWeightOperator(bpy.types.Operator):
         properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
         
         source: Object = properties.SOURCE
-        objects: List[Object] = []
+        targets: List[Object] = []
         
         if properties.SELECTION_MODE == 'MESH_SINGLE':
-            objects.append(properties.TARGET)
+            targets.append(properties.TARGET)
         else:
-            objects = properties.TARGETS
+            targets = getMeshObjects(properties.TARGETS)
 
-        targets: List[Object] = []
-        for obj in objects.objects:
-            self.report({"INFO"}, "Getting valid mesh objects")
-            
-            if obj.type == 'MESH' and obj != source:
-                targets.append(obj)
-            
         for target in targets:
-            message: str = f"Transferring weights from {source.name} to {obj.name}"
+            if target == properties.SOURCE:
+                self.report({'INFO'}, f"Skipping source mesh: {source.name}")
+                continue
+
+            message: str = f"Transferring weights from {source.name} to {target.name}"
             self.report({"INFO"}, message=message)
             
             bpy.ops.object.select_all(action='DESELECT')
@@ -138,15 +140,6 @@ class TransferWeightOperator(bpy.types.Operator):
         
         bpy.ops.object.select_all(action='DESELECT')
         context.view_layer.objects.active = None 
-        # for obj in targets.objects:
-        #     if obj.type == 'MESH' and obj != source:
-        #         message: str = f"Transferring weights from {source.name} to {obj.name}"
-        #     elif obj == source:
-        #         message: str = f"Skipping source mesh: {source.name}"
-        #     else:
-        #         message: str = f"Skipping non-mesh object: {obj.name}"
-                
-        #     self.report({"INFO"}, message=message)
             
         return {"FINISHED"}
     
@@ -183,9 +176,10 @@ class CleanUpOperator(bpy.types.Operator):
         if properties.SELECTION_MODE == 'MESH_SINGLE':
             targets.append(properties.TARGET)
         else:
-            targets = properties.TARGETS
+            targets = getMeshObjects(properties.TARGETS)
 
         for target in targets:
+            self.report({'INFO'}, f"Removing unweighted vertex groups from {target.name}")
             self.deleteZeroWeights(target)
         
         message: str = "Removed unweighted vertex groups from selected objects."
@@ -263,6 +257,16 @@ classes = [
     CleanUpOperator,
     EasyWeightPanel
 ]
+
+
+def getMeshObjects(objects: List[Object] | Collection) -> List[Object]:
+
+    if isinstance(objects, list):
+        return [obj for obj in objects if obj.type == 'MESH']
+    
+    return [obj for obj in objects.objects if obj.type == 'MESH']
+
+
 
 def updatePanel(self, context):
     # Force UI to update
