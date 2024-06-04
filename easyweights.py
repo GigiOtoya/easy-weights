@@ -102,6 +102,8 @@ class TransferWeightOperator(bpy.types.Operator):
     def transferWeights(source: Object, target: Object):
         for v_group in source.vertex_groups:
             target.vertex_groups.new(name=v_group.name)
+
+            {'TODO'}
         
 
     def execute(self, context: Context):
