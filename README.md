@@ -6,15 +6,15 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
 
 ## Features
 
-- Weight Transfer: Transfer vertex group weights from a source mesh to a target mesh or multiple meshes within a collection.
-- Clean Vertex Groups: Remove vertex groups with zero weights from target meshes.
-- Smooth Weights: Option to smooth weights for vertex groups during the transfer process.
+- **Weight Transfer**: Transfer vertex group weights from a source mesh to a target mesh or multiple meshes within a collection.
+- **Clean Vertex Groups**: Remove vertex groups with zero weights from target meshes.
+- **Smooth Weights**: Option to smooth weights for vertex groups during the transfer process.
 
 ## Installation
 
-1. Download the Script: Save the provided Python script to your local machine.
+1. **Download the Script**: Save the provided Python script to your local machine.
 
-2. Install the Add-on:
+2. **Install the Add-on**:
 
 - Open Blender.
 - Go to Edit > Preferences.
@@ -33,16 +33,16 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
 
 2. Settings Section:
 
-   - _Source_: Select the source mesh from which weights will be transferred.
-   - Selection Mode: Choose between Single Mesh or Collection to determine if weights will be transferred to one target mesh or all meshes in a collection.
-   - Target(s): Depending on the selection mode, choose the target mesh or the collection of meshes.
-   - Clean: Enable this option to remove vertex groups with zero weights from the target mesh.
-   - Smooth: Enable this option to smooth the weights for vertex groups.
+   - **Source**: Select the source mesh from which weights will be transferred.
+   - **Selection Mode**: Choose between Single Mesh or Collection to determine if weights will be transferred to one target mesh or all meshes in a collection.
+   - **Target(s)**: Depending on the selection mode, choose the target mesh or the collection of meshes.
+   - **Clean**: Enable this option to exclude vertex groups with zero weights from the target mesh.
+   - **Smooth**: Enable this option to smooth the weights for vertex groups.
 
 3. Actions Section:
 
-   - Transfer Weights: Click to transfer weights from the source to the selected target(s).
-   - Clean Vertex Groups: Click to clean vertex groups with zero weights from the selected target(s).
+   - **Transfer Weights**: Click to transfer weights from the source to the selected target(s).
+   - **Clean Vertex Groups**: Click to clean vertex groups with zero weights from the selected target(s).
 
 ## Detailed Class and Method Descriptions
 
@@ -54,15 +54,15 @@ A property group containing properties for source mesh, target mesh, target coll
 
 An operator to transfer weights from the source mesh to the target mesh(es).
 
-- transferWeights: Transfers weights from the source to the target.
+- **transferWeights**: Transfers weights from the source to the target.
   execute: Executes the weight transfer process.
 
 ### CleanUpOperator
 
 An operator to clean up vertex groups with zero weights from the target mesh(es).
 
-- deleteZeroWeights: Deletes vertex groups with zero weights from the target.
-- execute: Executes the cleanup process.
+- **deleteZeroWeights**: Deletes vertex groups with zero weights from the target.
+- **execute**: Executes the cleanup process.
 
 ### EasyWeightPanel
 
@@ -70,8 +70,8 @@ A panel class to create the UI for the add-on in the 3D Viewport.
 
 ### Utility Functions
 
-- getMeshObjects: Returns a list of mesh objects from a given list or collection.
-- updatePanel: Forces the UI to update.
+- **getMeshObjects**: Returns a list of mesh objects from a given list or collection.
+- **updatePanel**: Forces the UI to update.
 
 ### Registration Functions
 
