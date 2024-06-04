@@ -1,6 +1,6 @@
 import bpy
 from typing import List
-from bpy.types import Context, Object, Collection
+from bpy.types import Context, Object, Collection, MeshVertices
 from bpy.props import PointerProperty, BoolProperty, EnumProperty
 
 class EasyWeightsProperty(bpy.types.PropertyGroup):
@@ -164,26 +164,34 @@ class CleanUpOperator(bpy.types.Operator):
             return properties.TARGET != None
         else:
             return properties.TARGETS != None
+        
+    def deleteZeroWeights(self, target: Object):
+        vgroup_used = {i: False for i,k in enumerate(target.vertex_groups)}
+        for v in target.data.vertices:
+            for g in v.groups:
+                if g.weight > 0.0:
+                    vgroup_used[g.group] = True
+        
+        for i, used in sorted(vgroup_used.items(), reverse=True):
+            if not used:
+                target.vertex_groups.remove(target.vertex_groups[i])
 
     def execute(self, context: Context):
         properties: EasyWeightsProperty = context.scene.EasyWeightsProperty
         
-        objects: List[Object] = []
+        targets: List[Object] = []
         if properties.SELECTION_MODE == 'MESH_SINGLE':
-            objects.append(properties.TARGET)
+            targets.append(properties.TARGET)
         else:
-            objects = properties.TARGETS
-        
-        
+            targets = properties.TARGETS
 
-        selected_objects: List[Object] = context.selected_objects
+        for target in targets:
+            self.deleteZeroWeights(target)
         
-        for obj in selected_objects:
-            if obj.type == 'INFO':
-                obj.vertex_groups.clear()
-        
-        message: str = "Deleted all vertex groups from selected objects."
-        self.rdeport({'INFO'}, message=message)
+        message: str = "Removed unweighted vertex groups from selected objects."
+        self.report({'INFO'}, message=message)
+
+        return {'FINISHED'}
 
 class MainPanel:
     bl_space_type = "VIEW_3D"
