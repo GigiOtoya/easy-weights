@@ -26,12 +26,12 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
 
 ### Easy Weights Panel
 
-1. Access the Panel:
+1. **Access the Panel**:
 
    - Open the 3D Viewport.
    - Navigate to the Easy Weights tab on the right sidebar.
 
-2. Settings Section:
+2. **Settings Section**:
 
    - **Source**: Select the source mesh from which weights will be transferred.
    - **Selection Mode**: Choose between Single Mesh or Collection to determine if weights will be transferred to one target mesh or all meshes in a collection.
@@ -39,7 +39,7 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
    - **Clean**: Enable this option to exclude vertex groups with zero weights from the target mesh.
    - **Smooth**: Enable this option to smooth the weights for vertex groups.
 
-3. Actions Section:
+3. **Actions Section**:
 
    - **Transfer Weights**: Click to transfer weights from the source to the selected target(s).
    - **Clean Vertex Groups**: Click to clean vertex groups with zero weights from the selected target(s).
