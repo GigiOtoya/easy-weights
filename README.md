@@ -82,3 +82,5 @@ Registers all classes and adds the EasyWeightsProperty to the scene properties. 
 #### unregister
 
 Unregisters all classes and removes the EasyWeightsProperty from the scene properties. Also removes updatePanel from the depsgraph update handlers.
+
+<img src='easyweights.png' title='preview' width='' alt='preview' />
