@@ -33,7 +33,7 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
 
 2. Settings Section:
 
-   - Source: Select the source mesh from which weights will be transferred.
+   - _Source_: Select the source mesh from which weights will be transferred.
    - Selection Mode: Choose between Single Mesh or Collection to determine if weights will be transferred to one target mesh or all meshes in a collection.
    - Target(s): Depending on the selection mode, choose the target mesh or the collection of meshes.
    - Clean: Enable this option to remove vertex groups with zero weights from the target mesh.
