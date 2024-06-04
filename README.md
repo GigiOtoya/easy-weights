@@ -10,6 +10,8 @@ The Easy Weights Blender Add-on provides a user-friendly interface to transfer a
 - **Clean Vertex Groups**: Remove vertex groups with zero weights from target meshes.
 - **Smooth Weights**: Option to smooth weights for vertex groups during the transfer process.
 
+<img src='easyweights.png' title='preview' width='' alt='preview' />
+
 ## Installation
 
 1. **Download the Script**: Save the provided Python script to your local machine.
@@ -82,5 +84,3 @@ Registers all classes and adds the EasyWeightsProperty to the scene properties. 
 #### unregister
 
 Unregisters all classes and removes the EasyWeightsProperty from the scene properties. Also removes updatePanel from the depsgraph update handlers.
-
-<img src='easyweights.png' title='preview' width='' alt='preview' />
